@@ -19,7 +19,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 $Here    = $args[0]
 $rest    = @($args | Select-Object -Skip 1)
-$Csv     = Join-Path $Here 'client-mods.csv'
+$Csv     = 'https://raw.githubusercontent.com/galactics-minecraft/mods-collector/master/client-mods.csv'
 $ModsDir = Join-Path $env:APPDATA '.minecraft\mods'
 $DryRun  = $false
 $NoPrune = $false

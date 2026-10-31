@@ -4,7 +4,7 @@ set -u
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UA="OmarLawaty/mod-sync"
-CSV="$HERE/client-mods.csv"
+CSV="https://raw.githubusercontent.com/galactics-minecraft/mods-collector/master/client-mods.csv"
 DRY=0
 PRUNE=1
 case "$(uname -s)" in

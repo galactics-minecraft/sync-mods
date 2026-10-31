@@ -3,13 +3,14 @@
 set -u
 
 # Defaults to server-mods.csv if no file is passed
-CSV="${1:-server-mods.csv}"
+CSV="${1:-https://raw.githubusercontent.com/galactics-minecraft/mods-collector/master/server-mods.csv}"
 MODS="./mods"
 UA="OmarLawaty/mod-sync"
 
 echo "==> Syncing mods to $MODS using $CSV"
 
-if [ ! -f "$CSV" ]; then
+# We must bypass the strict file check when using a URL as default
+if [[ "$CSV" != http://* ]] && [[ "$CSV" != https://* ]] && [ ! -f "$CSV" ]; then
     echo "[FAIL] Cannot find $CSV"
     exit 1
 fi
@@ -35,6 +36,15 @@ fetch() {
         exit 1
     fi
 }
+
+# If it's a URL, download it to a temp file first, otherwise use the local file
+if [[ "$CSV" == http://* ]] || [[ "$CSV" == https://* ]]; then
+    TEMP_CSV="$TMP/downloaded_mods.csv"
+    fetch "$CSV" "$TEMP_CSV"
+    READ_FROM="$TEMP_CSV"
+else
+    READ_FROM="$CSV"
+fi
 
 uptodate=0; downloaded=0; failed=0; removed=0
 
@@ -70,7 +80,7 @@ while read -r link; do
             failed=$((failed + 1))
         fi
     fi
-done < <(grep -oE 'https?://[^"]+' "$CSV")
+done < <(grep -oE 'https?://[^"]+' "$READ_FROM")
 
 # 2. Prune old/extra mods not in the CSV
 BACKUP="./mods-removed/$(date +%Y-%m-%d_%H-%M-%S)"
