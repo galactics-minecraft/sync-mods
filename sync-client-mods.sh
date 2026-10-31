@@ -7,6 +7,7 @@ UA="OmarLawaty/mod-sync"
 CSV="https://raw.githubusercontent.com/galactics-minecraft/mods-collector/master/client-mods.csv"
 DRY=0
 PRUNE=1
+LOCAL=0
 case "$(uname -s)" in
   Darwin) MODS="$HOME/Library/Application Support/minecraft/mods" ;;
   *) MODS="$HOME/.minecraft/mods" ;;
@@ -15,10 +16,11 @@ esac
 usage() {
   cat <<'EOF'
 Usage: ./sync-mods.sh [options]
-  --csv <path|url>    client-mods.csv location (default: next to this script)
+  --csv <path|url>    override CSV location
   --mods-dir <path>   mods folder (default: your .minecraft/mods)
   --dry-run           show what would change, change nothing
   --no-prune          only download missing mods, never remove anything
+  --local             use "mods.csv" from the same folder as this script
 keep.txt (optional, next to this script): one file name or part of a name
 per line. Matching jars are never removed.
 EOF
@@ -30,10 +32,15 @@ while [ $# -gt 0 ]; do
     --mods-dir) [ $# -ge 2 ] || { usage; exit 2; }; MODS="$2"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     --no-prune) PRUNE=0; shift ;;
+    --local) LOCAL=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1"; usage; exit 2 ;;
   esac
 done
+
+if [ "$LOCAL" -eq 1 ]; then
+  CSV="$HERE/mods.csv"
+fi
 
 lower() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 

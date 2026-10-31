@@ -2,10 +2,33 @@
 # sync-mods.sh - Simple Mod Sync
 set -u
 
-# Defaults to server-mods.csv if no file is passed
-CSV="${1:-https://raw.githubusercontent.com/galactics-minecraft/mods-collector/master/server-mods.csv}"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CSV="https://raw.githubusercontent.com/galactics-minecraft/mods-collector/master/server-mods.csv"
 MODS="./mods"
 UA="OmarLawaty/mod-sync"
+LOCAL=0
+
+usage() {
+  cat <<'EOF'
+Usage: ./sync-server-mods.sh [options]
+  --csv <path|url>    override CSV location
+  --local             use "mods.csv" from the same folder as this script
+EOF
+}
+
+# Simple manual parsing since this script didn't have arguments originally
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --csv) [ $# -ge 2 ] || { usage; exit 2; }; CSV="$2"; shift 2 ;;
+    --local) LOCAL=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1"; usage; exit 2 ;;
+  esac
+done
+
+if [ "$LOCAL" -eq 1 ]; then
+  CSV="$HERE/mods.csv"
+fi
 
 echo "==> Syncing mods to $MODS using $CSV"
 
@@ -23,7 +46,7 @@ trap 'rm -rf "$TMP"' EXIT
 WANTED="$TMP/wanted.txt"
 touch "$WANTED"
 
-# Lowercase helper for macOS/Bash 3.2 compatibility 
+# Lowercase helper for macOS/Bash 3.2 compatibility
 lower() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
 
 fetch() {
@@ -56,12 +79,12 @@ while read -r link; do
     raw_name="${raw_name##*/}"
     file="$(printf '%b' "${raw_name//%/\\x}")"
     file_lower="$(lower "$file")"
-    
+
     # Skip if the link doesn't result in a .jar
     if [[ "$file_lower" != *.jar ]]; then
         continue
     fi
-    
+
     # Save to wanted list for the pruning step
     echo "$file_lower" >> "$WANTED"
 
